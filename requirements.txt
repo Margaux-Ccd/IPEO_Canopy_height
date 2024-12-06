@@ -1,0 +1,6 @@
+jupyther
+torch 
+torchvision 
+matplotlib 
+tqdm 
+gdown
