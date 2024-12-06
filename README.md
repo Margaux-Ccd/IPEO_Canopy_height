@@ -15,6 +15,8 @@ resolution. Each patch is of size 32 × 32.
 each image with the identical size 32 × 32 pixels. The pixel values in the mask correspond to the
 canopy height in meters as modeled by [1]. Values of 255 correspond to ’nodata’ values.
 
+Data can be accessed at https://drive.google.com/file/d/1iRQDJ4qCmUGrLyjgzeFcvxir90IlYohr/view?usp=drive_link
+
 # Challenges
 • You need to perform per-pixel regression (predict a continuous output for every pixel); your
 model architecture and loss function need to reflect that.
