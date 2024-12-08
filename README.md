@@ -16,7 +16,18 @@ each image with the identical size 32 × 32 pixels. The pixel values in the mask
 canopy height in meters as modeled by [1]. Values of 255 correspond to ’nodata’ values.
 
 Data can be accessed at https://drive.google.com/file/d/1iRQDJ4qCmUGrLyjgzeFcvxir90IlYohr/view?usp=drive_link
+# Files in this repo
+load_data.py - only run once, this will load the data from the gdrive onto your local machine. **Be Careful** you can't push this data back into github, the files are too large. When pushing changes, you have to specify which files you modified, you can't just push everything. 
 
+preprocessing.py - fixes an error with the csv file provided to us, loads a subset of 50 images to work with in train, test, and validation folders using def split_and_preprocess_data
+
+Sentinel2DatasetClass.py - reads in the .npy images from preprocessing, puts images and labels into torch and checks for correct sizing
+
+main.py - actually does the running of the preprocessing and sentinel2datasetclsas files
+
+model.py - UNet model using Adam Optimizer
+
+train.py - runs 10 epochs of model.py and performs validation
 # Challenges
 • You need to perform per-pixel regression (predict a continuous output for every pixel); your
 model architecture and loss function need to reflect that.
