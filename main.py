@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # Preprocess the data
     split_and_preprocess_data(csv_path, data_dir, output_dir, sample_size=50)
     
-    # use Sentinel2Dataset to load the processed data
+    # Use Sentinel2Dataset to load the processed data
     train_dataset = Sentinel2Dataset(
         image_dir=os.path.join(output_dir, 'train'),
         label_dir=os.path.join(output_dir, 'train'),
@@ -21,3 +21,5 @@ if __name__ == "__main__":
     # Print first item in the dataset as a test
     image, label = train_dataset[0]
     print(f"Image shape: {image.shape}, Label shape: {label.shape}")
+    
+
