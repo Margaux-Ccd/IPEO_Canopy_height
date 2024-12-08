@@ -2,6 +2,7 @@ import os
 from preprocessing import split_and_preprocess_data
 from Sentinel2DatasetClass import Sentinel2Dataset
 
+# Runs preprocessing and loads images and corresponding labels 
 if __name__ == "__main__":
     # Directories
     data_dir = "data/canopy_height_dataset"
