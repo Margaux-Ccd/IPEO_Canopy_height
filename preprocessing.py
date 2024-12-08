@@ -6,10 +6,9 @@ import rasterio
 
 def fix_csv_paths(csv_path, root_dir):
     # Load the CSV
-    df = pd.read_csv(csv_path)  # Skip the first row to correct headers
+    df = pd.read_csv(csv_path) 
     
-    # Print the column names 
-    print("Columns in CSV:", df.columns)
+    
     # Fix label paths (replace 'images' with 'labels')
     df['label_path'] = df['label_path'].str.replace('images/', 'labels/')
 
@@ -28,7 +27,7 @@ def load_image(image_path):
 
 
 def load_label(label_path):
-    # Read the label using rasterio (it may be single band)
+    # Read the label
     with rasterio.open(label_path) as src:
         label = src.read(1)  # Only read the first band for labels
     return label
