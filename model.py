@@ -9,6 +9,7 @@ class UNet(nn.Module):
         super(UNet, self).__init__()
         
         # downsampling with encoder
+        # get spectral info 
         self.enc1 = self.conv_block(in_channels, 64)
         self.enc2 = self.conv_block(64, 128)
         self.enc3 = self.conv_block(128, 256)
@@ -55,7 +56,7 @@ class UNet(nn.Module):
         # Bottleneck
         bottleneck = self.bottleneck(F.max_pool2d(enc4, 2))
 
-        # Decoding
+        # Decoding, using skip connections to retain spatial featuers
         up4 = self.upconv4(bottleneck)
         up3 = self.upconv3(up4 + enc4)
         up2 = self.upconv2(up3 + enc3)
