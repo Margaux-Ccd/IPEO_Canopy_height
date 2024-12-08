@@ -27,7 +27,7 @@ def load_image(image_path):
 
 
 def load_label(label_path):
-    # Read the label
+    # Read the labelpp
     with rasterio.open(label_path) as src:
         label = src.read(1)  # Only read the first band for labels
     return label
