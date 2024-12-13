@@ -29,7 +29,7 @@ def train_model(train_dataset, val_dataset, batch_size=8, num_epochs=10, learnin
 
             # Forward pass
             optimizer.zero_grad()
-            outputs = model(images)
+            outputs = model(images).squeeze(1) # Resize for loss to function properly
             loss = loss_fn(outputs, labels)
 
             # Backward pass
@@ -58,7 +58,7 @@ def validate_model(model, val_loader, loss_fn, device):
         for images, labels in val_loader:
             images, labels = images.to(device), labels.to(device)
 
-            outputs = model(images)
+            outputs = model(images).squeeze(1) # Resize for loss to function properly
             loss = loss_fn(outputs, labels)
 
             val_loss += loss.item()
