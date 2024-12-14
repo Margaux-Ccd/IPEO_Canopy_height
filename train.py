@@ -124,47 +124,4 @@ if __name__ == "__main__":
     number_visu=5
     
     visualize_images(val_dataset,number_visu)
-    """# Visualize image from training
-    #discrete color scheme
-    cMap = plt.get_cmap('viridis', 255)"""
-
-    """# draw a random sample
-    idx = torch.randint(0, len(train_dataset), (1,))
-    print("index image to visualise=",idx)
-    data, target = train_dataset.__getitem__(idx)
-    print(f'Image tensor size: {data.size()}')
-    print(f'Label tensor size: {target.size()}')
-
-    model=get_model()
-    output_image=model(data)
-    # Example usage
-    visualize_images(data, target, output_image, num_images=3)"""
-"""    # visualise
-
-    # Visualize the first 3 RGB channels (B4, B3, B2)
-    plt.figure()
-    if data.size(0) >= 4:  # Ensure there are enough channels
-        # Extract and normalize RGB bands
-        rgb_data = data[[3, 2, 1], ...]  # B4 (Red), B3 (Green), B2 (Blue)
-        rgb_normalized = (rgb_data - rgb_data.min()) / (rgb_data.max() - rgb_data.min())
-        
-        # Visualize
-        plt.imshow(rgb_normalized.permute(1, 2, 0).numpy())  # HWC format
-        plt.title('Input: RGB satellite imagery (B4-B3-B2)')
-    else:
-        print("Data has fewer than 4 channels; unable to visualize RGB.")
-    plt.show()
-
-    # Visualize the segmentation mask
-    plt.figure()
-    plt.imshow(target.numpy(), cmap='viridis')  # Assuming the target is a segmentation mask
-    plt.title('Target: Segmentation Mask')
-    plt.show()
-
-    #Visualise the output segmentation map
-    plt.figure()
-    plt.imshow(output_image.squeeze().detach().numpy(), cmap='viridis')  # Assuming the target is a segmentation mask
-    plt.title('Output: Segmentation Mask')
-    plt.show()"""
-
 
