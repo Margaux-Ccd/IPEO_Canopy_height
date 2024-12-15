@@ -4,7 +4,9 @@ from torch.utils.data import DataLoader
 from Sentinel2DatasetClass import Sentinel2Dataset
 from model import get_model, get_optimizer, get_loss_fn
 from tqdm import tqdm
-
+# for visualisation
+import matplotlib.pyplot as plt
+import numpy as np
 def train_model(train_dataset, val_dataset, batch_size=8, num_epochs=10, learning_rate=0.001, save_dir="models"):
     # Dataloaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -29,7 +31,7 @@ def train_model(train_dataset, val_dataset, batch_size=8, num_epochs=10, learnin
 
             # Forward pass
             optimizer.zero_grad()
-            outputs = model(images)
+            outputs = model(images).squeeze(1) # Resize for loss to function properly
             loss = loss_fn(outputs, labels)
 
             # Backward pass
@@ -58,12 +60,58 @@ def validate_model(model, val_loader, loss_fn, device):
         for images, labels in val_loader:
             images, labels = images.to(device), labels.to(device)
 
-            outputs = model(images)
+            outputs = model(images).squeeze(1) # Resize for loss to function properly
             loss = loss_fn(outputs, labels)
 
             val_loss += loss.item()
 
     print(f"Validation Loss: {val_loss/len(val_loader)}")
+
+
+
+
+# Function to visualize images, labels, and segmentation outputs
+def visualize_images(val_dataset, num_images):
+    """
+    Visualize multiple images, their corresponding labels, and output segmentation maps.
+    
+    Parameters:
+    - val_dataset
+    - num_images: Number of images to visualize.
+    """
+    num_images = min(num_images, len(val_dataset))  # Ensure we don't exceed validation dataset length
+
+    fig, axes = plt.subplots(num_images, 3, figsize=(15, 5 * num_images))  # 3 columns: Image, Label, Output
+    for i in range(num_images):
+        # Choose random images in the dataset
+        idx = torch.randint(0, len(val_dataset), (1,))
+        print("index image to visualise=",idx)
+        data, target = val_dataset.__getitem__(idx)
+        # Extract RGB channels for the image
+        rgb_data = data[ [3, 2, 1], ...]  # B4 (Red), B3 (Green), B2 (Blue)
+        rgb_normalized = (rgb_data - rgb_data.min()) / (rgb_data.max() - rgb_data.min())  # Normalize
+
+        # Plot Input Image (RGB)
+        axes[i, 0].imshow(rgb_normalized.permute(1, 2, 0).numpy())  # Convert CHW -> HWC
+        axes[i, 0].set_title(f"Input Image {idx} (RGB)")
+        axes[i, 0].axis("off")
+
+        # Plot Label (Ground Truth)
+        axes[i, 1].imshow(target.numpy(), cmap="viridis")
+        axes[i, 1].set_title(f"Label {idx}")
+        axes[i, 1].axis("off")
+
+        # Plot Output Segmentation Map
+        model=get_model()
+        output_image=model(data)
+        output_2d = output_image.squeeze().detach().numpy()  # Remove channel dimension
+        axes[i, 2].imshow(output_2d, cmap="viridis")
+        axes[i, 2].set_title(f"Output {idx}")
+        axes[i, 2].axis("off")
+
+    plt.tight_layout()
+    plt.show()
+
 
 if __name__ == "__main__":
     # Load datasets
@@ -72,3 +120,8 @@ if __name__ == "__main__":
 
     # Train the model
     train_model(train_dataset, val_dataset, batch_size=8, num_epochs=10, learning_rate=0.001)
+
+    number_visu=5
+    
+    visualize_images(val_dataset,number_visu)
+
