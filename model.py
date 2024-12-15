@@ -75,8 +75,10 @@ def get_model(in_channels=12, out_channels=1):
 def get_optimizer(model, learning_rate=0.001):
     return optim.Adam(model.parameters(), lr=learning_rate)
 
-# MSE loss functon for continuous regression values
+
+
+# loss functon for continuous regression values
 def get_loss_fn():
-    return nn.MSELoss() 
+    return nn.SmoothL1Loss(reduction="mean")
 
 
