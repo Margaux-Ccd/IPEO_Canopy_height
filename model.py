@@ -32,8 +32,10 @@ class UNet(nn.Module):
     def conv_block(self, in_channels, out_channels):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1), # not sure?
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1), # not sure? 
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
     
@@ -72,7 +74,7 @@ def get_model(in_channels=12, out_channels=1):
     return model
 
 # return Adam optimizer with learning rate - to be tested
-def get_optimizer(model, learning_rate=0.001):
+def get_optimizer(model, learning_rate=0.001, weight_decay=1e-5):
     return optim.Adam(model.parameters(), lr=learning_rate)
 
 
