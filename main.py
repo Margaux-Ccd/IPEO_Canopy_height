@@ -10,7 +10,7 @@ if __name__ == "__main__":
     csv_path = os.path.join(data_dir, "data_split.csv")
 
     # Preprocess the data
-    split_and_preprocess_data(csv_path, data_dir, output_dir, sample_size=50)
+    split_and_preprocess_data(csv_path, data_dir, output_dir, sample_size=1000)
     
     # Use Sentinel2Dataset to load the processed data
     train_dataset = Sentinel2Dataset(
