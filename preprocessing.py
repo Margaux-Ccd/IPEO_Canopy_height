@@ -34,7 +34,7 @@ def load_label(label_path):
 
 
 # Get a subset of 50 images to practice with
-def preprocess_subset(df, subset, output_dir, sample_size=50):
+def preprocess_subset(df, subset, output_dir, sample_size=1000):
     # Filter dataset by subset (train/val/test)
     subset_df = df[df['split'] == subset].sample(n=sample_size, random_state=100)
     
@@ -51,7 +51,7 @@ def preprocess_subset(df, subset, output_dir, sample_size=50):
         np.save(os.path.join(output_dir, f"label_{idx}.npy"), label)
 
 
-def split_and_preprocess_data(csv_path, root_dir, output_dir, sample_size=50):
+def split_and_preprocess_data(csv_path, root_dir, output_dir, sample_size=1000):
     # Fix paths in the CSV file
     df = fix_csv_paths(csv_path, root_dir)
     
