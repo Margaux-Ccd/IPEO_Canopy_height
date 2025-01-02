@@ -4,18 +4,26 @@ from torch.utils.data import DataLoader
 from Sentinel2DatasetClass import Sentinel2Dataset
 from model import get_model, get_optimizer, get_loss_fn
 from tqdm import tqdm
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+
+
 # for visualisation
 import matplotlib.pyplot as plt
 import numpy as np
-def train_model(train_dataset, val_dataset, batch_size=8, num_epochs=10, learning_rate=0.001, save_dir="models"):
+def train_model(train_dataset, val_dataset, batch_size=8, num_epochs=15, learning_rate=0.001, weight_decay=1e-5, save_dir="models"):
     # Dataloaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-    # Model, loss, optimizer
+    # Model, loss, learning rate optimizer, optimizer
     model = get_model()
-    optimizer = get_optimizer(model, learning_rate)
+    optimizer = get_optimizer(model, learning_rate, weight_decay)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5, verbose=True)
     loss_fn = get_loss_fn()
+
+    # Track the best validation loss and corresponding learning rate
+    best_val_loss = float('inf')
+    best_lr = learning_rate
 
     # Check for GPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -43,8 +51,17 @@ def train_model(train_dataset, val_dataset, batch_size=8, num_epochs=10, learnin
         print(f"Epoch {epoch+1}, Loss: {running_loss/len(train_loader)}")
 
         # Validation
-        if (epoch+1) % 2 == 0:
-            validate_model(model, val_loader, loss_fn, device)
+        val_loss = None
+        if (epoch + 1) % 2 == 0:
+            val_loss = validate_model(model, val_loader, loss_fn, device)
+
+        # Update best learning rate if validation loss improves
+        if val_loss is not None and val_loss < best_val_loss:
+            best_val_loss = val_loss
+            best_lr = optimizer.param_groups[0]['lr']
+
+        # Step scheduler after validation
+        scheduler.step(running_loss / len(train_loader))
 
         # Save the model
         if (epoch+1) % 5 == 0:
@@ -52,6 +69,8 @@ def train_model(train_dataset, val_dataset, batch_size=8, num_epochs=10, learnin
             torch.save(model.state_dict(), os.path.join(save_dir, f"model_epoch_{epoch+1}.pth"))
 
     print("Training complete.")
+    # Print the best learning rate
+    print(f"Training complete. Best Validation Loss: {best_val_loss:.4f} achieved with Learning Rate: {best_lr:.6f}")
 
 def validate_model(model, val_loader, loss_fn, device):
     model.eval()
@@ -66,6 +85,7 @@ def validate_model(model, val_loader, loss_fn, device):
             val_loss += loss.item()
 
     print(f"Validation Loss: {val_loss/len(val_loader)}")
+    
 
 
 
@@ -118,10 +138,22 @@ if __name__ == "__main__":
     train_dataset = Sentinel2Dataset(image_dir="data/processed/train", label_dir="data/processed/train")
     val_dataset = Sentinel2Dataset(image_dir="data/processed/validation", label_dir="data/processed/validation")
 
+    # Training parameters
+    initial_learning_rate = 0.001
+    weight_decay = 1e-5
+    num_epochs = 15
+    batch_size = 8
+
     # Train the model
-    train_model(train_dataset, val_dataset, batch_size=8, num_epochs=10, learning_rate=0.001)
+    train_model(
+        train_dataset,
+        val_dataset,
+        batch_size=batch_size,
+        num_epochs=num_epochs,
+        learning_rate=initial_learning_rate,
+        weight_decay=weight_decay
+    )
 
-    number_visu=5
-    
-    visualize_images(val_dataset,number_visu)
-
+    # Visualization
+    number_visu = 5
+    visualize_images(val_dataset, number_visu)
