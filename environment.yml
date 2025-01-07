@@ -1,13 +1,16 @@
-name:
-
-
-
-
+name: Canopy_height_env
 channels:
-
-
-
-
-
-
-depedencies:
+  - defaults
+dependencies:
+  - python=3.11 
+  - pip
+  - pip:
+      - gdown
+      - torch
+      - numpy
+      - pandas
+      - pillows
+      - rasterio
+      - albumentations
+      - tqdm
+      - matplotlib
