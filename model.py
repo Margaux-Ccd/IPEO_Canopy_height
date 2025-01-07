@@ -8,65 +8,68 @@ class UNet(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UNet, self).__init__()
         
-        # downsampling with encoder
-        # get spectral info 
+        # Encoder path
         self.enc1 = self.conv_block(in_channels, 64)
         self.enc2 = self.conv_block(64, 128)
         self.enc3 = self.conv_block(128, 256)
         self.enc4 = self.conv_block(256, 512)
-
-        # Bottleneck - most compressed image
+        
+        # Bottleneck
         self.bottleneck = self.conv_block(512, 1024)
+        
+        # Decoder path - note the increased input channels due to concatenation
+        self.up_conv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
+        self.dec4 = self.conv_block(1024, 512)  # 512 from up_conv4 + 512 from enc4
+        
+        self.up_conv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
+        self.dec3 = self.conv_block(512, 256)   # 256 from up_conv3 + 256 from enc3
+        
+        self.up_conv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        self.dec2 = self.conv_block(256, 128)   # 128 from up_conv2 + 128 from enc2
+        
+        self.up_conv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        self.dec1 = self.conv_block(128, 64)    # 64 from up_conv1 + 64 from enc1
+        
+        self.final_conv = nn.Conv2d(64, out_channels, kernel_size=1)
 
-        # upsampling with decoder
-        # increase spatial res
-        self.upconv4 = self.upconv_block(1024, 512)
-        self.upconv3 = self.upconv_block(512, 256)
-        self.upconv2 = self.upconv_block(256, 128)
-        self.upconv1 = self.upconv_block(128, 64)
-
-        # Output layer
-        self.out_conv = nn.Conv2d(64, out_channels, kernel_size=1)
-    
-    # 2 iterations of convulation and then ReLu activation function
     def conv_block(self, in_channels, out_channels):
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1), # not sure?
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1), # not sure? 
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
-    
-    # Upsampling conv 
-    def upconv_block(self, in_channels, out_channels):
-        return nn.Sequential(
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2), # not sure?
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1), # not sure?
             nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
-        # Encoding
+        # Encoder path
         enc1 = self.enc1(x)
         enc2 = self.enc2(F.max_pool2d(enc1, 2))
         enc3 = self.enc3(F.max_pool2d(enc2, 2))
         enc4 = self.enc4(F.max_pool2d(enc3, 2))
-
+        
         # Bottleneck
         bottleneck = self.bottleneck(F.max_pool2d(enc4, 2))
-
-        # Decoding, using skip connections to retain spatial featuers
-        up4 = self.upconv4(bottleneck)
-        up3 = self.upconv3(up4 + enc4)
-        up2 = self.upconv2(up3 + enc3)
-        up1 = self.upconv1(up2 + enc2)
-
-        # Output
-        out = self.out_conv(up1 + enc1)
-        return out
+        
+        # Decoder path with skip connections
+        dec4 = self.up_conv4(bottleneck)
+        dec4 = torch.cat([dec4, enc4], dim=1)
+        dec4 = self.dec4(dec4)
+        
+        dec3 = self.up_conv3(dec4)
+        dec3 = torch.cat([dec3, enc3], dim=1)
+        dec3 = self.dec3(dec3)
+        
+        dec2 = self.up_conv2(dec3)
+        dec2 = torch.cat([dec2, enc2], dim=1)
+        dec2 = self.dec2(dec2)
+        
+        dec1 = self.up_conv1(dec2)
+        dec1 = torch.cat([dec1, enc1], dim=1)
+        dec1 = self.dec1(dec1)
+        
+        return self.final_conv(dec1)
 
 # create and return Unet 12 input channels
 def get_model(in_channels=12, out_channels=1):
@@ -74,13 +77,19 @@ def get_model(in_channels=12, out_channels=1):
     return model
 
 # return Adam optimizer with learning rate - to be tested
-def get_optimizer(model, learning_rate=0.001, weight_decay=1e-5):
-    return optim.Adam(model.parameters(), lr=learning_rate)
+def get_optimizer(model, learning_rate=0.0001, weight_decay=1e-4):
+    return optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
 
 
 # loss functon for continuous regression values
 def get_loss_fn():
-    return nn.SmoothL1Loss(reduction="mean")
+    mse_loss = nn.MSELoss()
+    l1_loss = nn.SmoothL1Loss()
+    
+    def combined_loss(pred, target):
+        return 0.5 * mse_loss(pred, target) + 0.5 * l1_loss(pred, target)
+    
+    return combined_loss
 
 
