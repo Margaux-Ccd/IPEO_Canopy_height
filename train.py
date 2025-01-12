@@ -18,7 +18,7 @@ def train_model(train_dataset, val_dataset, batch_size, num_epochs, learning_rat
     # Model, loss, optimizer setup
     model = get_model()
     optimizer = get_optimizer(model, learning_rate, weight_decay)
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5, verbose=True)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', patience=2, factor=0.5)
     loss_fn = get_loss_fn()
 
     # Early stopping parameters
