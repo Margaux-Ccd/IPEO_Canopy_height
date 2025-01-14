@@ -82,11 +82,11 @@ def get_optimizer(model, learning_rate=0.0001, weight_decay=1e-4):
 
 
 
-# loss functon for continuous regression values
+'''# loss functon for continuous regression values
 def get_loss_fn():
-    return nn.SmoothL1Loss(reduction="mean")
+    return nn.SmoothL1Loss(reduction="mean")'''
 
-'''
+
 def get_loss_fn():
     mse_loss = nn.MSELoss()
     l1_loss = nn.SmoothL1Loss()
@@ -95,6 +95,6 @@ def get_loss_fn():
         return 0.5 * mse_loss(pred, target) + 0.5 * l1_loss(pred, target)
     
     return combined_loss
-'''
+
 
 
